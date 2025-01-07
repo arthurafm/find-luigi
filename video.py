@@ -11,6 +11,7 @@ yoshi_template = cv.imread('assets/yoshi.png', cv.IMREAD_GRAYSCALE)
 
 # Define minimum confidence threshold
 CONFIDENCE_THRESHOLD = 0.90
+FILTER_CHUNKS_CONFIDENCE_THRESHOLD = 0.98
 
 # Template matching method
 method_name = 'TM_CCORR_NORMED'
@@ -27,38 +28,35 @@ def divide_template(template, divisions=2):
             chunk = template[i * chunk_h:(i + 1) * chunk_h, j * chunk_w:(j + 1) * chunk_w]
             if np.count_nonzero(chunk) >= (chunk.size / 2):
                 chunks.append((chunk, (j * chunk_w, i * chunk_h)))  # Store chunk with its offset
-    return chunks
+
+    # Filter empty chunks
+    chunks = [ chunk for chunk in chunks if chunk[0].size != 0 ]
+
+    # Filter chunks too similar to chunks of other icons
+    new_chunks = set()
+
+    for other_template in [ mario_template, wario_template, yoshi_template ]:
+        for i in range(len(chunks)):
+            chunk, offset = chunks[i]
+
+            res = cv.matchTemplate(other_template, chunk, method)
+            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+
+            top_left = max_loc
+            confidence = max_val
+
+            if confidence > FILTER_CHUNKS_CONFIDENCE_THRESHOLD:
+                new_chunks.add(i)
+
+    filtered_chunks = []
+    for i, value in enumerate(chunks):
+        if i not in new_chunks:
+            filtered_chunks.append(value)
+
+    return filtered_chunks
 
 # Divide the template into chunks before resizing
 chunks = divide_template(template_original, divisions=8)
-
-# Filter empty chunks
-chunks = [ chunk for chunk in chunks if chunk[0].size != 0 ]
-
-# Filter chunks too similar to chunks of other icons
-new_chunks = set()
-
-for other_template in [ mario_template, wario_template, yoshi_template ]:
-    for i in range(len(chunks)):
-        chunk, offset = chunks[i]
-
-        res = cv.matchTemplate(other_template, chunk, method)
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-
-        top_left = max_loc
-        confidence = max_val
-
-        if confidence > 0.98:
-            # print(f'Confidence: {confidence}')
-            # print(f'Removing chunk {i}')
-            new_chunks.add(i)
-
-filtered_array = []
-for i, value in enumerate(chunks):
-    if i not in new_chunks:
-        filtered_array.append(value)
-
-chunks = filtered_array
 
 # Resize the template
 template = cv.resize(template_original, (70, 89))
@@ -126,6 +124,10 @@ while True:
 
     # Write the frame to the output video
     out.write(frame)
+
+    # Debug frame-to-frame
+    plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
+    plt.show()
 
 # Release resources
 cap.release()
