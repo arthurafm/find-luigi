@@ -3,11 +3,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # Load the template
-template_original = cv.imread('luigi.png', cv.IMREAD_GRAYSCALE)
+template_original = cv.imread('assets/luigi.png', cv.IMREAD_GRAYSCALE)
 
-mario_template = cv.imread('mario.png', cv.IMREAD_GRAYSCALE)
-wario_template = cv.imread('wario.png', cv.IMREAD_GRAYSCALE)
-yoshi_template = cv.imread('yoshi.png', cv.IMREAD_GRAYSCALE)
+mario_template = cv.imread('assets/mario.png', cv.IMREAD_GRAYSCALE)
+wario_template = cv.imread('assets/wario.png', cv.IMREAD_GRAYSCALE)
+yoshi_template = cv.imread('assets/yoshi.png', cv.IMREAD_GRAYSCALE)
 
 # Define minimum confidence threshold
 CONFIDENCE_THRESHOLD = 0.98

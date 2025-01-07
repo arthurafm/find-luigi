@@ -4,12 +4,12 @@ from matplotlib import pyplot as plt
 
 imgs_rgb = []
 imgs_greyscale = []
-for file in [f'test{i}.png' for i in range(6)]:
+for file in [f'assets/test{i}.png' for i in range(6)]:
     img = cv.imread(file, cv.COLOR_RGB2BGR)
     imgs_rgb.append(img)
     imgs_greyscale.append(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
 imgs2 = imgs_greyscale.copy()
-template = cv.imread('icon.png', cv.IMREAD_GRAYSCALE)
+template = cv.imread('assets/luigi.png', cv.IMREAD_GRAYSCALE)
 template = cv.resize(template, (70, 89))
 w, h = template.shape[::-1]
 

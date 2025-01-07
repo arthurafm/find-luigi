@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 # Load images
 imgs_rgb = []
 imgs_greyscale = []
-for file in [f'test{i}.png' for i in range(6)]:
+for file in [f'assets/test{i}.png' for i in range(6)]:
     img = cv.imread(file, cv.COLOR_RGB2BGR)
     imgs_rgb.append(img)
     imgs_greyscale.append(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
@@ -13,7 +13,7 @@ for file in [f'test{i}.png' for i in range(6)]:
 imgs2 = imgs_greyscale.copy()
 
 # Load the template
-template_original = cv.imread('icon.png', cv.IMREAD_GRAYSCALE)
+template_original = cv.imread('assets/luigi.png', cv.IMREAD_GRAYSCALE)
 
 # Define minimum confidence threshold
 CONFIDENCE_THRESHOLD = 0.89
@@ -30,11 +30,15 @@ def divide_template(template, divisions=2):
     for i in range(divisions):
         for j in range(divisions):
             chunk = template[i * chunk_h:(i + 1) * chunk_h, j * chunk_w:(j + 1) * chunk_w]
-            chunks.append((chunk, (j * chunk_w, i * chunk_h)))  # Store chunk with its offset
+            if np.count_nonzero(chunk) >= (chunk.size / 2):
+                chunks.append((chunk, (j * chunk_w, i * chunk_h)))  # Store chunk with its offset
     return chunks
 
 # Divide the template into chunks before resizing
 chunks = divide_template(template_original, divisions=2)
+
+# Filter empty chunks
+chunks = [ chunk for chunk in chunks if chunk[0].size != 0 ]
 
 # Resize the template
 template = cv.resize(template_original, (70, 89))
