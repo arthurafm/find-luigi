@@ -30,31 +30,35 @@ def divide_template(template, divisions=2):
     return chunks
 
 # Divide the template into chunks before resizing
-chunks = divide_template(template_original, divisions=2)
+chunks = divide_template(template_original, divisions=8)
 
 # Filter empty chunks
 chunks = [ chunk for chunk in chunks if chunk[0].size != 0 ]
 
 # Filter chunks too similar to chunks of other icons
 new_chunks = set()
-other_templates = [ mario_template, wario_template, yoshi_template ]
 
-for other_template in other_templates:
-    for chunk, offset in chunks:
+for other_template in [ mario_template, wario_template, yoshi_template ]:
+    for i in range(len(chunks)):
+        chunk, offset = chunks[i]
+
         res = cv.matchTemplate(other_template, chunk, method)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-        if method == cv.TM_SQDIFF_NORMED:
-            top_left = min_loc
-            confidence = 1 - min_val
-        else:
-            top_left = max_loc
-            confidence = max_val
+        top_left = max_loc
+        confidence = max_val
 
-        if confidence < 0.89:
-            new_chunks.add((chunk, offset))
+        if confidence > 0.98:
+            # print(f'Confidence: {confidence}')
+            # print(f'Removing chunk {i}')
+            new_chunks.add(i)
 
-chunks = list(new_chunks)
+filtered_array = []
+for i, value in enumerate(chunks):
+    if i not in new_chunks:
+        filtered_array.append(value)
+
+chunks = filtered_array
 
 # Resize the template
 template = cv.resize(template_original, (70, 89))
@@ -62,7 +66,7 @@ w, h = template.shape[::-1]
 
 # Input and output video paths
 input_video_path = 'easy0.mp4'
-output_video_path = 'easy0-99_2.avi'
+output_video_path = 'easy0-99_8.avi'
 
 # Open the input video
 cap = cv.VideoCapture(input_video_path)
@@ -107,12 +111,8 @@ while True:
             res_chunk = cv.matchTemplate(img, chunk_resized, method)
             min_val_chunk, max_val_chunk, min_loc_chunk, max_loc_chunk = cv.minMaxLoc(res_chunk)
 
-            if method == cv.TM_SQDIFF_NORMED:
-                chunk_top_left = min_loc_chunk
-                chunk_confidence = 1 - min_val_chunk
-            else:
-                chunk_top_left = max_loc_chunk
-                chunk_confidence = max_val_chunk
+            chunk_top_left = max_loc_chunk
+            chunk_confidence = max_val_chunk
 
             if chunk_confidence > confidence:
                 confidence = chunk_confidence
