@@ -58,7 +58,6 @@ def divide_template(template, divisions=2):
 chunks_2 = divide_template(template_original, divisions=2)
 chunks_4 = divide_template(template_original, divisions=4)
 chunks_8 = divide_template(template_original, divisions=8)
-chunks_16 = divide_template(template_original, divisions=16)
 
 # Resize the template
 template = cv.resize(template_original, (70, 89))
@@ -104,7 +103,7 @@ while True:
 
     while confidence < CONFIDENCE_THRESHOLD:
         # Perform matching for each pre-divided chunk
-        for chunks in [ chunks_2, chunks_4, chunks_8, chunks_16 ]:
+        for chunks in [ chunks_2, chunks_4, chunks_8 ]:
             for chunk, offset in chunks:
                 chunk_resized = cv.resize(chunk, (chunk.shape[1] * w // template_original.shape[1], 
                                                     chunk.shape[0] * h // template_original.shape[0]))
@@ -115,11 +114,11 @@ while True:
                 chunk_confidence = max_val_chunk
 
                 if chunk_confidence > confidence:
+                    print(f'Chunk_{2 if len(chunks) == 3 else 4 if len(chunks) == 8 else 8}')
+                    print(f'Chunk confidence: {chunk_confidence}')
                     confidence = chunk_confidence
-                    top_left = (chunk_top_left[0] + offset[0], chunk_top_left[1] + offset[1])
-                    bottom_right = (top_left[0] + chunk_resized.shape[1], top_left[1] + chunk_resized.shape[0])
-
-    print(f'Final confidence: {confidence}')
+                    top_left = (chunk_top_left[0] - offset[0] * h // template_original.shape[1], chunk_top_left[1] - offset[1] * w // template_original.shape[0])
+                    bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
 
     # Draw rectangle around the detected region
     cv.rectangle(frame, top_left, bottom_right, (255, 0, 255), 2)

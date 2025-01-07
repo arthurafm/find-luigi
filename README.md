@@ -7,6 +7,6 @@ ideias:
 - [ ] refatorar o código
 - [X] fazer a divisão de chunks recursivamente
 - [ ] escrever relatório e apresentação de slides; criar exemplos
-- [ ] ajustar o tamanho do retangulo desenhado quando o match se dá por um chunk
+- [X] ajustar o tamanho do retangulo desenhado quando o match se dá por um chunk
 - [ ] procurar POR QUE o canto superior esquerdo do Mario dá tanto match
-- [ ] combinar confidence de chunks do mesmo grupo
+- [ ] sistema de votação de chunks -> precisa de que a bounding box original do template seja disponível
