@@ -10,7 +10,7 @@ wario_template = cv.imread('assets/wario.png', cv.IMREAD_GRAYSCALE)
 yoshi_template = cv.imread('assets/yoshi.png', cv.IMREAD_GRAYSCALE)
 
 # Define minimum confidence threshold
-CONFIDENCE_THRESHOLD = 0.90
+CONFIDENCE_THRESHOLD = 0.95
 FILTER_CHUNKS_CONFIDENCE_THRESHOLD = 0.98
 
 # Template matching method
@@ -42,7 +42,6 @@ def divide_template(template, divisions=2):
             res = cv.matchTemplate(other_template, chunk, method)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-            top_left = max_loc
             confidence = max_val
 
             if confidence > FILTER_CHUNKS_CONFIDENCE_THRESHOLD:
@@ -56,7 +55,10 @@ def divide_template(template, divisions=2):
     return filtered_chunks
 
 # Divide the template into chunks before resizing
-chunks = divide_template(template_original, divisions=8)
+chunks_2 = divide_template(template_original, divisions=2)
+chunks_4 = divide_template(template_original, divisions=4)
+chunks_8 = divide_template(template_original, divisions=8)
+chunks_16 = divide_template(template_original, divisions=16)
 
 # Resize the template
 template = cv.resize(template_original, (70, 89))
@@ -64,7 +66,7 @@ w, h = template.shape[::-1]
 
 # Input and output video paths
 input_video_path = 'easy0.mp4'
-output_video_path = 'easy0-99_8.avi'
+output_video_path = 'easy0-99.avi'
 
 # Open the input video
 cap = cv.VideoCapture(input_video_path)
@@ -94,30 +96,30 @@ while True:
     res = cv.matchTemplate(img, template, method)
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-    if method == cv.TM_SQDIFF_NORMED:
-        top_left = min_loc
-        confidence = 1 - min_val
-    else:
-        top_left = max_loc
-        confidence = max_val
+    top_left = max_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    confidence = max_val
 
-    if confidence < CONFIDENCE_THRESHOLD:
+    print(f'Confidence without chunks: {confidence}')
+
+    while confidence < CONFIDENCE_THRESHOLD:
         # Perform matching for each pre-divided chunk
-        for chunk, offset in chunks:
-            chunk_resized = cv.resize(chunk, (chunk.shape[1] * w // template_original.shape[1], 
-                                                chunk.shape[0] * h // template_original.shape[0]))
-            res_chunk = cv.matchTemplate(img, chunk_resized, method)
-            min_val_chunk, max_val_chunk, min_loc_chunk, max_loc_chunk = cv.minMaxLoc(res_chunk)
+        for chunks in [ chunks_2, chunks_4, chunks_8, chunks_16 ]:
+            for chunk, offset in chunks:
+                chunk_resized = cv.resize(chunk, (chunk.shape[1] * w // template_original.shape[1], 
+                                                    chunk.shape[0] * h // template_original.shape[0]))
+                res_chunk = cv.matchTemplate(img, chunk_resized, method)
+                min_val_chunk, max_val_chunk, min_loc_chunk, max_loc_chunk = cv.minMaxLoc(res_chunk)
 
-            chunk_top_left = max_loc_chunk
-            chunk_confidence = max_val_chunk
+                chunk_top_left = max_loc_chunk
+                chunk_confidence = max_val_chunk
 
-            if chunk_confidence > confidence:
-                confidence = chunk_confidence
-                top_left = (chunk_top_left[0] + offset[0], chunk_top_left[1] + offset[1])
-                bottom_right = (top_left[0] + chunk_resized.shape[1], top_left[1] + chunk_resized.shape[0])
-    else:
-        bottom_right = (top_left[0] + w, top_left[1] + h)
+                if chunk_confidence > confidence:
+                    confidence = chunk_confidence
+                    top_left = (chunk_top_left[0] + offset[0], chunk_top_left[1] + offset[1])
+                    bottom_right = (top_left[0] + chunk_resized.shape[1], top_left[1] + chunk_resized.shape[0])
+
+    print(f'Final confidence: {confidence}')
 
     # Draw rectangle around the detected region
     cv.rectangle(frame, top_left, bottom_right, (255, 0, 255), 2)
