@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
 
 # Load the template
 template_original = cv.imread('assets/luigi.png', cv.IMREAD_GRAYSCALE)
@@ -10,9 +11,7 @@ wario_template = cv.imread('assets/wario.png', cv.IMREAD_GRAYSCALE)
 yoshi_template = cv.imread('assets/yoshi.png', cv.IMREAD_GRAYSCALE)
 
 # Define minimum confidence threshold
-CONFIDENCE_THRESHOLD = 0.95
 FILTER_CHUNKS_CONFIDENCE_THRESHOLD = 0.98
-
 CONFIDENCE_WITHOUT_CHUNKS_THRESHOLD = 0.90
 CONFIDENCE_CHUNKS_2_THRESHOULD = 0.96
 CONFIDENCE_CHUNKS_4_THRESHOULD = 0.98
@@ -69,8 +68,8 @@ template = cv.resize(template_original, (70, 89))
 w, h = template.shape[::-1]
 
 # Input and output video paths
-input_video_path = 'easy0.mp4'
-output_video_path = 'easy0-95_debug.avi'
+input_video_path = f'input_videos/{sys.argv[1]}.mp4'
+output_video_path = f'output_videos/{sys.argv[1]}.avi'
 
 # Open the input video
 cap = cv.VideoCapture(input_video_path)
@@ -109,11 +108,7 @@ while True:
     if confidence < CONFIDENCE_WITHOUT_CHUNKS_THRESHOLD:
         bb_votes.append((top_left, bottom_right))
 
-    # print(f'Confidence without chunks: {confidence}')
-    # print(f'BB without chunks: ({top_left}, {bottom_right})')
-
-    # while confidence < CONFIDENCE_THRESHOLD:
-        # Perform matching for each pre-divided chunk
+    # Perform matching for each pre-divided chunk
     for chunks in [ chunks_2, chunks_4, chunks_8 ]:
         for chunk, offset in chunks:
             chunk_resized = cv.resize(chunk, (chunk.shape[1] * w // template_original.shape[1], 
@@ -123,13 +118,6 @@ while True:
 
             chunk_top_left = max_loc_chunk
             chunk_confidence = max_val_chunk
-
-            # if len(chunks) == 3:
-                # print(f'Chunk_{2 if len(chunks) == 3 else 4 if len(chunks) == 8 else 8}')
-                # print(f'Chunk confidence: {chunk_confidence}')
-                # print_top_left = (chunk_top_left[0] - offset[0] * h // template_original.shape[1], chunk_top_left[1] - offset[1] * w // template_original.shape[0])
-                # print_bottom_right = (print_top_left[0] + template.shape[1], print_top_left[1] + template.shape[0])
-                # print(f'This chunk votes for ({print_top_left}, {print_bottom_right})')
 
             doChunkVote = False
 
@@ -148,8 +136,6 @@ while True:
                 top_left = (chunk_top_left[0] - offset[0] * h // template_original.shape[1], chunk_top_left[1] - offset[1] * w // template_original.shape[0])
                 bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
                 bb_votes.append((top_left, bottom_right))
-
-    # print(f'Voted BBs:\n{bb_votes}')
 
     overlap_counts = {}
 
@@ -171,8 +157,6 @@ while True:
     max_overlaps = max(overlap_counts.values())
     winner_bbs = [bb_votes[idx] for idx, count in overlap_counts.items() if count == max_overlaps]
 
-    # print(f'Winner BBs:\n{winner_bbs}')
-
     sum_top_left_0 = 0
     sum_top_left_1 = 0
     sum_bottom_right_0 = 0
@@ -186,7 +170,6 @@ while True:
     top_left = (sum_top_left_0 // len(winner_bbs), sum_top_left_1 // len(winner_bbs))
     bottom_right = (sum_bottom_right_0 // len(winner_bbs), sum_bottom_right_1 // len(winner_bbs))
 
-    # print(f'Defined BB: ({top_left}, {bottom_right})')
     # Draw rectangle around the detected region
     cv.rectangle(frame, top_left, bottom_right, (255, 0, 255), 2)
 
