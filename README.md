@@ -1,12 +1,3 @@
-ideias:
-- [X] fazer o chunking dos outros icones de personagem e excluir chunks similares dos chunks do luigi
-- [ ] pegar a ideia das cores únicas do Luigi
-- [ ] pegar chunks do Luigi manualmente a partir do Distracted Coder
-- [X] decidir por fim qual função de erro vai ser utilizada
-- [X] corrigir o funcionamento da remoção de chunks que encaixam com outros ícones
-- [ ] refatorar o código
-- [X] fazer a divisão de chunks recursivamente
-- [ ] escrever relatório e apresentação de slides; criar exemplos
-- [X] ajustar o tamanho do retangulo desenhado quando o match se dá por um chunk
-- [ ] procurar POR QUE o canto superior esquerdo do Mario dá tanto match
-- [ ] sistema de votação de chunks -> precisa de que a bounding box original do template seja disponível
+# Find-Luigi
+
+This repository is a study on object detection and template matching techniques in the context of the *New Super Mario Brothers* minigame "*Wanted!*" made popular by *X* (formerly *Twitter*) account *@FindLuigi*.
